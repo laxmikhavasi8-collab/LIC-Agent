@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InsurAgent Pro - Agent & Policy Management Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f6ff',
+                            100: '#dbeafe', // Light Blue specified
+                            200: '#bfdbfe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af', // Primary Blue specified
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 h-full flex flex-col transition-colors duration-200">
+
+    <!-- APP CONTAINER -->
+    <div id="app" class="h-full flex flex-col overflow-hidden">
+        
+        <!-- LOGIN / REGISTER SCREEN (SHOWS WHEN NOT LOGGED IN) -->
+        <div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 bg-opacity-95 p-4 overflow-y-auto">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-100 dark:border-gray-700 my-auto">
+                <!-- Logo & Header -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-800 text-white shadow-lg mb-3">
+                        <i class="fa-solid fa-shield-halved text-3xl"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">InsurAgent Portal</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Enterprise Policy & Commission Management</p>
+                </div>
+
+                <!-- Auth Tabs -->
+                <div class="flex border-b border-gray-200 dark:border-gray-700 mb-6">
+                    <button id="tabBtnLogin" onclick="switchAuthTab('login')" class="w-1/2 py-2 font-semibold text-center border-b-2 border-brand-800 text-brand-800 dark:text-blue-400">Login</button>
+                    <button id="tabBtnRegister" onclick="switchAuthTab('register')" class="w-1/2 py-2 font-semibold text-center text-gray-500 hover:text-gray-700 dark:text-gray-400">Register</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" onsubmit="handleAuth(event, 'login')" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase mb-1">Select Role</label>
+                        <select id="loginRole" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-brand-800 outline-none">
+                            <option value="Agent">Agent</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase mb-1">Email Address</label>
+                        <input type="email" id="loginEmail" required value="agent@insuragent.com" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-brand-800 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase mb-1">Password</label>
+                        <input type="password" required value="••••••••" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-brand-800 outline-none">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-brand-800 hover:bg-brand-900 text-white font-semibold rounded-lg shadow-md transition duration-200">Sign In</button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="registerForm" onsubmit="handleAuth(event, 'register')" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase mb-1">Full Name</label>
+                        <input type="text" id="regName" required placeholder="John Doe" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-brand-800 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase mb-1">Role</label>
+                        <select id="regRole" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-brand-800 outline-none">
+                            <option value="Agent">Agent</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase mb-1">Email</label>
+                        <input type="email" id="regEmail" required placeholder="john@example.com" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-brand-800 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase mb-1">Password</label>
+                        <input type="password" required placeholder="••••••••" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-brand-800 outline-none">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-brand-800 hover:bg-brand-900 text-white font-semibold rounded-lg shadow-md transition duration-200">Create Account</button>
+                </form>
+
+                <!-- Quick Demo Login Section -->
+                <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <p class="text-xs text-center text-gray-500 dark:text-gray-400 mb-3 font-medium">QUICK DEMO ACCESSS</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="quickLogin('Agent')" class="px-2 py-2 bg-blue-50 text-brand-800 dark:bg-gray-700 dark:text-blue-300 rounded-lg text-xs font-semibold hover:bg-brand-100 text-center transition">
+                            <i class="fa-solid fa-user-tie block mb-1 text-sm"></i> Agent
+                        </button>
+                        <button onclick="quickLogin('Manager')" class="px-2 py-2 bg-indigo-50 text-indigo-800 dark:bg-gray-700 dark:text-indigo-300 rounded-lg text-xs font-semibold hover:bg-indigo-100 text-center transition">
+                            <i class="fa-solid fa-briefcase block mb-1 text-sm"></i> Manager
+                        </button>
+                        <button onclick="quickLogin('Admin')" class="px-2 py-2 bg-purple-50 text-purple-800 dark:bg-gray-700 dark:text-purple-300 rounded-lg text-xs font-semibold hover:bg-purple-100 text-center transition">
+                            <i class="fa-solid fa-user-shield block mb-1 text-sm"></i> Admin
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN DASHBOARD APP STRUCTURE -->
+        <div id="mainDashboard" class="flex h-full overflow-hidden">
+            
+            <!-- SIDEBAR NAV -->
+            <aside id="sidebar" class="w-64 bg-brand-800 text-white flex flex-col transition-all duration-300 z-30 shrink-0">
+                <!-- Logo -->
+                <div class="p-5 flex items-center justify-between border-b border-blue-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white text-brand-800 p-2 rounded-lg shadow-sm">
+                            <i class="fa-solid fa-shield-halved text-xl"></i>
+                        </div>
+                        <span class="font-bold text-lg tracking-wide">InsurAgent</span>
+                    </div>
+                    <button onclick="toggleSidebar()" class="md:hidden text-white hover:text-gray-200">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Navigation Items -->
+                <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+                    <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item flex items-center px-4 py-3 text-sm font-medium rounded-lg bg-blue-900 text-white">
+                        <i class="fa-solid fa-chart-pie w-6"></i> <span>Dashboard</span>
+                    </a>
+                    <a href="#" onclick="switchTab('clients')" id="nav-clients" class="nav-item flex items-center px-4 py-3 text-sm font-medium rounded-lg text-blue-100 hover:bg-blue-700">
+                        <i class="fa-solid fa-users w-6"></i> <span>Clients</span>
+                    </a>
+                    <a href="#" onclick="switchTab('policies')" id="nav-policies" class="nav-item flex items-center px-4 py-3 text-sm font-medium rounded-lg text-blue-100 hover:bg-blue-700">
+                        <i class="fa-solid fa-file-contract w-6"></i> <span>Policies</span>
+                    </a>
+                    <a href="#" onclick="switchTab('premiums')" id="nav-premiums" class="nav-item flex items-center px-4 py-3 text-sm font-medium rounded-lg text-blue-100 hover:bg-blue-700">
+                        <i class="fa-solid fa-wallet w-6"></i> <span>Premium Tracking</span>
+                    </a>
+                    <a href="#" onclick="switchTab('commission')" id="nav-commission" class="nav-item flex items-center px-4 py-3 text-sm font-medium rounded-lg text-blue-100 hover:bg-blue-700">
+                        <i class="fa-solid fa-calculator w-6"></i> <span>Commission Calculator</span>
+                    </a>
+                    <a href="#" onclick="switchTab('renewals')" id="nav-renewals" class="nav-item flex items-center px-4 py-3 text-sm font-medium rounded-lg text-blue-100 hover:bg-blue-700">
+                        <i class="fa-solid fa-rotate-right w-6"></i> <span>Renewals</span>
+                    </a>
+                    <a href="#" onclick="switchTab('claims')" id="nav-claims" class="nav-item flex items-center px-4 py-3 text-sm font-medium rounded-lg text-blue-100 hover:bg-blue-700">
+                        <i class="fa-solid fa-hand-holding-medical w-6"></i> <span>Claims</span>
+                    </a>
+                    <a href="#" onclick="switchTab('leads')" id="nav-leads" class="nav-item flex items-center px-4 py-3 text-sm font-medium rounded-lg text-blue-100 hover:bg-blue-700">
+                        <i class="fa-solid fa-filter-circle-dollar w-6"></i> <span>Leads Pipeline</span>
+                    </a>
+                    <a href="#" onclick="switchTab('reports')" id="nav-reports" class="nav-item flex items-center px-4 py-3 text-sm font-medium rounded-lg text-blue-100 hover:bg-blue-700">
+                        <i class="fa-solid fa-chart-line w-6"></i> <span>Performance Reports</span>
+                    </a>
+                </nav>
+
+                <!-- Current User Info Sidebar Footer -->
+                <div class="p-4 border-t border-blue-900 bg-blue-950/40">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center font-bold text-white text-sm" id="userAvatar">
+                            AG
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-white truncate" id="userNameDisplay">Alex Agent</p>
+                            <p class="text-xs text-blue-200 truncate uppercase font-medium" id="userRoleBadge">AGENT</p>
+                        </div>
+                        <button onclick="logout()" class="text-blue-300 hover:text-white p-1" title="Logout">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT WRAPPER -->
+            <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+                
+                <!-- TOP NAVBAR -->
+                <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between shrink-0">
+                    <div class="flex items-center space-x-4">
+                        <button onclick="toggleSidebar()" class="md:hidden text-gray-600 dark:text-gray-300 hover:text-gray-900">
+                            <i class="fa-solid fa-bars text-xl"></i>
+                        </button>
+                        <h2 id="currentTabTitle" class="text-xl font-bold text-gray-800 dark:text-white">Dashboard Overview</h2>
+                    </div>
+
+                    <!-- Top Bar Actions -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Search Bar -->
+                        <div class="relative hidden sm:block">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+                            <input type="text" placeholder="Global search..." class="pl-9 pr-4 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 text-gray-800 dark:text-gray-100 w-48 lg:w-64">
+                        </div>
+
+                        <!-- Dark/Light Mode Toggle -->
+                        <button onclick="toggleDarkMode()" class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition" title="Toggle Theme">
+                            <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                        </button>
+
+                        <!-- Notification Bell -->
+                        <div class="relative">
+                            <button onclick="toggleNotifications()" class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 relative">
+                                <i class="fa-solid fa-bell text-lg"></i>
+                                <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+                            </button>
+                            <!-- Notification Popup -->
+                            <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 p-4">
+                                <h4 class="text-sm font-bold mb-2 border-b dark:border-gray-700 pb-2">Recent Alerts</h4>
+                                <div class="space-y-3 text-xs">
+                                    <div class="p-2 bg-blue-50 dark:bg-gray-700 rounded-lg">
+                                        <p class="font-semibold text-brand-800 dark:text-blue-300">Premium Due Reminder</p>
+                                        <p class="text-gray-600 dark:text-gray-300">Policy #POL-8832 is due in 3 days.</p>
+                                    </div>
+                                    <div class="p-2 bg-amber-50 dark:bg-gray-700 rounded-lg">
+                                        <p class="font-semibold text-amber-800 dark:text-amber-300">Claim Action Required</p>
+                                        <p class="text-gray-600 dark:text-gray-300">Claim #CLM-102 uploaded documents.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Profile Badge -->
+                        <div class="flex items-center space-x-2 pl-2 border-l border-gray-200 dark:border-gray-700">
+                            <span class="text-sm font-semibold hidden md:inline text-gray-700 dark:text-gray-200" id="topNavUser">Alex Agent</span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- DYNAMIC TAB CONTENT AREA -->
+                <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-900 custom-scrollbar">
+                    
+                    <!-- TAB 1: DASHBOARD -->
+                    <div id="tab-dashboard" class="tab-content space-y-6">
+                        <!-- Key Stats Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Total Clients</p>
+                                    <h3 class="text-2xl font-bold mt-1 text-gray-900 dark:text-white" id="stat-clients">24</h3>
+                                    <span class="text-xs text-green-600 font-medium"><i class="fa-solid fa-arrow-up"></i> +12% this month</span>
+                                </div>
+                                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/40 text-brand-800 dark:text-blue-400 rounded-xl flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-users"></i>
+                                </div>
+                            </div>
+
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Active Policies</p>
+                                    <h3 class="text-2xl font-bold mt-1 text-gray-900 dark:text-white" id="stat-policies">48</h3>
+                                    <span class="text-xs text-green-600 font-medium"><i class="fa-solid fa-arrow-up"></i> +5 new</span>
+                                </div>
+                                <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-file-contract"></i>
+                                </div>
+                            </div>
+
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Premium Collected</p>
+                                    <h3 class="text-2xl font-bold mt-1 text-gray-900 dark:text-white" id="stat-premium">$124,500</h3>
+                                    <span class="text-xs text-green-600 font-medium"><i class="fa-solid fa-arrow-up"></i> +18% vs last query</span>
+                                </div>
+                                <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-sack-dollar"></i>
+                                </div>
+                            </div>
+
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Comm. Earned</p>
+                                    <h3 class="text-2xl font-bold mt-1 text-gray-900 dark:text-white" id="stat-commission">$18,675</h3>
+                                    <span class="text-xs text-green-600 font-medium"><i class="fa-solid fa-arrow-up"></i> YTD Total</span>
+                                </div>
+                                <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 rounded-xl flex items-center justify-center text-xl">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Charts Visualizations Row -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white mb-4">Sales & Commission Growth</h3>
+                                <div class="h-64">
+                                    <canvas id="salesChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white mb-4">Policy Mix Breakdown</h3>
+                                <div class="h-64">
+                                    <canvas id="policyTypeChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity & Quick Actions -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Quick Renewal Alerts -->
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-base font-bold text-gray-800 dark:text-white">Upcoming Renewals (30 Days)</h3>
+                                    <button onclick="switchTab('renewals')" class="text-xs font-semibold text-brand-800 dark:text-blue-400 hover:underline">View All</button>
+                                </div>
+                                <div class="space-y-3" id="dashUpcomingRenewals">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- Lead Pipeline Quick Actions -->
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-base font-bold text-gray-800 dark:text-white">Hot Prospect Leads</h3>
+                                    <button onclick="switchTab('leads')" class="text-xs font-semibold text-brand-800 dark:text-blue-400 hover:underline">Lead Pipeline</button>
+                                </div>
+                                <div class="space-y-3" id="dashHotLeads">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: CLIENT MANAGEMENT -->
+                    <div id="tab-clients" class="tab-content hidden space-y-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div class="relative w-full sm:w-72">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-sm"></i>
+                                <input type="text" id="clientSearch" oninput="renderClients()" placeholder="Search clients..." class="w-full pl-9 pr-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                            </div>
+                            <button onclick="openClientModal()" class="w-full sm:w-auto px-4 py-2 bg-brand-800 hover:bg-brand-900 text-white font-medium rounded-lg shadow transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-plus"></i> <span>Add New Client</span>
+                            </button>
+                        </div>
+
+                        <!-- Clients Table -->
+                        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase border-b border-gray-100 dark:border-gray-700">
+                                        <th class="p-4">Client Name</th>
+                                        <th class="p-4">Contact Info</th>
+                                        <th class="p-4">Address</th>
+                                        <th class="p-4">Nominee</th>
+                                        <th class="p-4">Medical History</th>
+                                        <th class="p-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientsTableBody" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: POLICY MANAGEMENT -->
+                    <div id="tab-policies" class="tab-content hidden space-y-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                                <select id="policyFilterType" onchange="renderPolicies()" class="px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 text-sm dark:text-white">
+                                    <option value="All">All Types</option>
+                                    <option value="Endowment Plan">Endowment Plan</option>
+                                    <option value="Health Insurance">Health Insurance</option>
+                                    <option value="Money Back Plan">Money Back Plan</option>
+                                    <option value="Child Plan">Child Plan</option>
+                                    <option value="Pension Plan">Pension Plan</option>
+                                    <option value="Term Insurance">Term Insurance</option>
+                                </select>
+                                <select id="policyFilterStatus" onchange="renderPolicies()" class="px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 text-sm dark:text-white">
+                                    <option value="All">All Statuses</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Matured">Matured</option>
+                                    <option value="Lapsed">Lapsed</option>
+                                    <option value="Renewal Due">Renewal Due</option>
+                                </select>
+                            </div>
+                            <button onclick="openPolicyModal()" class="w-full sm:w-auto px-4 py-2 bg-brand-800 hover:bg-brand-900 text-white font-medium rounded-lg shadow transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-plus"></i> <span>Create Policy</span>
+                            </button>
+                        </div>
+
+                        <!-- Policies Grid / Table -->
+                        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase border-b border-gray-100 dark:border-gray-700">
+                                        <th class="p-4">Policy No & Type</th>
+                                        <th class="p-4">Client</th>
+                                        <th class="p-4">Sum Assured</th>
+                                        <th class="p-4">Premium</th>
+                                        <th class="p-4">Term</th>
+                                        <th class="p-4">Status</th>
+                                        <th class="p-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="policiesTableBody" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: PREMIUM TRACKING -->
+                    <div id="tab-premiums" class="tab-content hidden space-y-6">
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                            <h3 class="text-base font-bold text-gray-800 dark:text-white mb-2">Premium Due & History Ledger</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Track upcoming installment payments, past payments, and send direct payment alerts.</p>
+                            
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase border-b border-gray-100 dark:border-gray-700">
+                                            <th class="p-4">Policy #</th>
+                                            <th class="p-4">Client</th>
+                                            <th class="p-4">Due Date</th>
+                                            <th class="p-4">Amount</th>
+                                            <th class="p-4">Status</th>
+                                            <th class="p-4 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="premiumTableBody" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                                        <!-- Dynamic -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 5: COMMISSION CALCULATOR -->
+                    <div id="tab-commission" class="tab-content hidden space-y-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Calculator Input Card -->
+                            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm space-y-4">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white border-b dark:border-gray-700 pb-2">Agent Commission Calculator</h3>
+                                
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase mb-1">Annual Premium Amount ($)</label>
+                                    <input type="number" id="calcAmount" value="5000" oninput="calculateCommission()" class="w-full px-4 py-2.5 rounded-lg border dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-brand-800 outline-none">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase mb-1">Policy Tenure Year</label>
+                                    <select id="calcYear" onchange="calculateCommission()" class="w-full px-4 py-2.5 rounded-lg border dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-brand-800 outline-none">
+                                        <option value="1">Year 1 (First Sales - 25%)</option>
+                                        <option value="2">Year 2 (15%)</option>
+                                        <option value="3">Year 3 - 5 (10%)</option>
+                                        <option value="renewal">Renewal Onwards (5%)</option>
+                                    </select>
+                                </div>
+
+                                <div class="p-4 bg-brand-50 dark:bg-gray-700/50 rounded-xl border border-brand-100 dark:border-gray-600 space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600 dark:text-gray-300">Commission Rate:</span>
+                                        <span id="calcRateLabel" class="font-bold text-brand-800 dark:text-blue-300">25%</span>
+                                    </div>
+                                    <div class="flex justify-between text-lg font-bold">
+                                        <span class="text-gray-800 dark:text-white">Estimated Payout:</span>
+                                        <span id="calcPayout" class="text-emerald-600 dark:text-emerald-400">$1,250.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rules Reference Card -->
+                            <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4">Commission Structure Rates</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="p-4 rounded-xl border border-blue-100 bg-blue-50/50 dark:bg-gray-700 dark:border-gray-600">
+                                        <div class="text-xs text-blue-800 dark:text-blue-300 font-bold uppercase">First Year (New Sale)</div>
+                                        <div class="text-3xl font-extrabold text-brand-800 dark:text-blue-400 mt-1">25%</div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-300 mt-1">Paid upon first annual premium collection.</p>
+                                    </div>
+                                    <div class="p-4 rounded-xl border border-indigo-100 bg-indigo-50/50 dark:bg-gray-700 dark:border-gray-600">
+                                        <div class="text-xs text-indigo-800 dark:text-indigo-300 font-bold uppercase">Second Year</div>
+                                        <div class="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">15%</div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-300 mt-1">Second year policy continuation incentive.</p>
+                                    </div>
+                                    <div class="p-4 rounded-xl border border-purple-100 bg-purple-50/50 dark:bg-gray-700 dark:border-gray-600">
+                                        <div class="text-xs text-purple-800 dark:text-purple-300 font-bold uppercase">Years 3 to 5</div>
+                                        <div class="text-3xl font-extrabold text-purple-600 dark:text-purple-400 mt-1">10%</div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-300 mt-1">Mid-term client retention commission.</p>
+                                    </div>
+                                    <div class="p-4 rounded-xl border border-emerald-100 bg-emerald-50/50 dark:bg-gray-700 dark:border-gray-600">
+                                        <div class="text-xs text-emerald-800 dark:text-emerald-300 font-bold uppercase">Renewal (6+ Years)</div>
+                                        <div class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">5%</div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-300 mt-1">Perpetual lifetime policy renewal payout.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 6: RENEWAL MANAGEMENT -->
+                    <div id="tab-renewals" class="tab-content hidden space-y-6">
+                        <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                                <h3 class="text-base font-bold text-gray-800 dark:text-white">Upcoming & Overdue Renewals</h3>
+                                <button onclick="sendBulkRenewalReminders()" class="px-4 py-2 bg-brand-800 text-white font-medium rounded-lg hover:bg-brand-900 transition text-sm flex items-center space-x-2">
+                                    <i class="fa-solid fa-paper-plane"></i> <span>Send Batch Reminders</span>
+                                </button>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase border-b border-gray-100 dark:border-gray-700">
+                                            <th class="p-4">Policy #</th>
+                                            <th class="p-4">Client Name</th>
+                                            <th class="p-4">Renewal Date</th>
+                                            <th class="p-4">Amount</th>
+                                            <th class="p-4">Status</th>
+                                            <th class="p-4 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="renewalsTableBody" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                                        <!-- Dynamic -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 7: CLAIMS MANAGEMENT -->
+                    <div id="tab-claims" class="tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-white">Insurance Claims Center</h3>
+                            <button onclick="openClaimModal()" class="px-4 py-2 bg-brand-800 hover:bg-brand-900 text-white font-medium rounded-lg shadow transition flex items-center space-x-2">
+                                <i class="fa-solid fa-plus"></i> <span>Register Claim</span>
+                            </button>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-xs uppercase border-b border-gray-100 dark:border-gray-700">
+                                        <th class="p-4">Claim ID</th>
+                                        <th class="p-4">Policy #</th>
+                                        <th class="p-4">Client</th>
+                                        <th class="p-4">Claim Amount</th>
+                                        <th class="p-4">Status</th>
+                                        <th class="p-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="claimsTableBody" class="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB 8: LEAD MANAGEMENT -->
+                    <div id="tab-leads" class="tab-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-bold text-gray-800 dark:text-white">Prospective Leads Pipeline</h3>
+                            <button onclick="openLeadModal()" class="px-4 py-2 bg-brand-800 hover:bg-brand-900 text-white font-medium rounded-lg shadow transition flex items-center space-x-2">
+                                <i class="fa-solid fa-user-plus"></i> <span>New Lead</span>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- New Leads Column -->
+                            <div class="bg-gray-100 dark:bg-gray-800/60 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                                <h4 class="font-bold text-sm text-gray-700 dark:text-gray-300 mb-3 flex items-center justify-between">
+                                    <span>New Leads</span>
+                                    <span class="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs" id="cnt-new-leads">0</span>
+                                </h4>
+                                <div id="leads-col-new" class="space-y-3 min-h-[200px]"></div>
+                            </div>
+
+                            <!-- In Discussion Column -->
+                            <div class="bg-blue-50/50 dark:bg-gray-800/60 p-4 rounded-xl border border-blue-100 dark:border-gray-700">
+                                <h4 class="font-bold text-sm text-brand-800 dark:text-blue-400 mb-3 flex items-center justify-between">
+                                    <span>In Discussion</span>
+                                    <span class="px-2 py-0.5 bg-blue-100 dark:bg-gray-700 rounded text-xs" id="cnt-discussion-leads">0</span>
+                                </h4>
+                                <div id="leads-col-discussion" class="space-y-3 min-h-[200px]"></div>
+                            </div>
+
+                            <!-- Converted / Qualified Column -->
+                            <div class="bg-emerald-50/50 dark:bg-gray-800/60 p-4 rounded-xl border border-emerald-100 dark:border-gray-700">
+                                <h4 class="font-bold text-sm text-emerald-800 dark:text-emerald-400 mb-3 flex items-center justify-between">
+                                    <span>Converted Clients</span>
+                                    <span class="px-2 py-0.5 bg-emerald-100 dark:bg-gray-700 rounded text-xs" id="cnt-converted-leads">0</span>
+                                </h4>
+                                <div id="leads-col-converted" class="space-y-3 min-h-[200px]"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 9: PERFORMANCE REPORTS -->
+                    <div id="tab-reports" class="tab-content hidden space-y-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white">Performance Analytics & Export</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Generate and download financial and portfolio summary reports.</p>
+                            </div>
+                            <button onclick="exportCSVReport()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg shadow transition flex items-center space-x-2">
+                                <i class="fa-solid fa-file-csv text-lg"></i> <span>Export Report (CSV)</span>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                                <h4 class="font-bold text-sm text-gray-800 dark:text-white mb-4">Quarterly Commission Breakdown</h4>
+                                <div class="h-64">
+                                    <canvas id="quarterlyChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                                <h4 class="font-bold text-sm text-gray-800 dark:text-white mb-4">Policy Conversion Funnel</h4>
+                                <div class="h-64">
+                                    <canvas id="conversionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DIALOGS -->
+
+    <!-- CLIENT MODAL -->
+    <div id="clientModal" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full p-6 border dark:border-gray-700">
+            <h3 id="clientModalTitle" class="text-lg font-bold text-gray-900 dark:text-white mb-4">Add New Client</h3>
+            <form id="clientForm" onsubmit="saveClient(event)" class="space-y-4">
+                <input type="hidden" id="clientId">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Full Name</label>
+                    <input type="text" id="clientName" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Phone</label>
+                        <input type="text" id="clientPhone" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Email</label>
+                        <input type="email" id="clientEmail" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Address</label>
+                    <input type="text" id="clientAddress" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Nominee Details</label>
+                    <input type="text" id="clientNominee" placeholder="e.g. Mary Doe (Spouse)" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Medical History / Notes</label>
+                    <textarea id="clientMedical" rows="2" placeholder="e.g. No chronic conditions, non-smoker" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal('clientModal')" class="px-4 py-2 border rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-800 text-white rounded-lg hover:bg-brand-900">Save Client</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- POLICY MODAL -->
+    <div id="policyModal" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full p-6 border dark:border-gray-700">
+            <h3 id="policyModalTitle" class="text-lg font-bold text-gray-900 dark:text-white mb-4">Create New Policy</h3>
+            <form id="policyForm" onsubmit="savePolicy(event)" class="space-y-4">
+                <input type="hidden" id="policyId">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Select Client</label>
+                    <select id="policyClient" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Policy Type</label>
+                        <select id="policyType" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                            <option value="Endowment Plan">Endowment Plan</option>
+                            <option value="Health Insurance">Health Insurance</option>
+                            <option value="Money Back Plan">Money Back Plan</option>
+                            <option value="Child Plan">Child Plan</option>
+                            <option value="Pension Plan">Pension Plan</option>
+                            <option value="Term Insurance">Term Insurance</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Status</label>
+                        <select id="policyStatus" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                            <option value="Active">Active</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Matured">Matured</option>
+                            <option value="Lapsed">Lapsed</option>
+                            <option value="Renewal Due">Renewal Due</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Sum Assured ($)</label>
+                        <input type="number" id="policySum" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Premium ($)</label>
+                        <input type="number" id="policyPremium" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Start Date</label>
+                        <input type="date" id="policyStart" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Term (Years)</label>
+                        <input type="number" id="policyTerm" required value="10" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Policy Document (Simulation)</label>
+                    <input type="file" onchange="simulateDocUpload(this)" class="w-full text-xs text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-800 dark:file:bg-gray-700 dark:file:text-blue-300 hover:file:bg-brand-100">
+                    <p id="docUploadStatus" class="text-xs text-green-600 font-medium mt-1 hidden"><i class="fa-solid fa-circle-check"></i> Document attached successfully</p>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal('policyModal')" class="px-4 py-2 border rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-800 text-white rounded-lg hover:bg-brand-900">Save Policy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CLAIM MODAL -->
+    <div id="claimModal" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 border dark:border-gray-700">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Register Claim</h3>
+            <form id="claimForm" onsubmit="saveClaim(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Select Policy</label>
+                    <select id="claimPolicy" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Claim Amount ($)</label>
+                    <input type="number" id="claimAmount" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Reason / Description</label>
+                    <textarea id="claimReason" rows="2" required placeholder="e.g. Hospitalization medical coverage claim" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal('claimModal')" class="px-4 py-2 border rounded-lg text-gray-600 dark:text-gray-300">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-800 text-white rounded-lg hover:bg-brand-900">Submit Claim</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LEAD MODAL -->
+    <div id="leadModal" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 border dark:border-gray-700">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Add Prospective Lead</h3>
+            <form id="leadForm" onsubmit="saveLead(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Lead Name</label>
+                    <input type="text" id="leadName" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Contact Phone</label>
+                    <input type="text" id="leadPhone" required class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Interested Policy Type</label>
+                    <select id="leadType" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-800">
+                        <option value="Health Insurance">Health Insurance</option>
+                        <option value="Term Insurance">Term Insurance</option>
+                        <option value="Endowment Plan">Endowment Plan</option>
+                        <option value="Pension Plan">Pension Plan</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal('leadModal')" class="px-4 py-2 border rounded-lg text-gray-600 dark:text-gray-300">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-brand-800 text-white rounded-lg hover:bg-brand-900">Add Lead</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 border border-gray-700">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-green-400 text-lg"></i>
+        <span id="toastMsg" class="text-sm font-medium">Operation completed successfully</span>
+    </div>
+
+    <!-- JAVASCRIPT APPLICATION LOGIC -->
+    <script>
+        // APPLICATION STATE
+        let currentUser = null;
+        let chartInstances = {};
+
+        // INITIAL MOCK DATA
+        let state = {
+            clients: [
+                { id: '101', name: 'Eleanor Vance', phone: '+1 555-0192', email: 'eleanor@example.com', address: '124 Maple St, NY', nominee: 'Thomas Vance (Spouse)', medical: 'Hypertension controlled' },
+                { id: '102', name: 'Marcus Sterling', phone: '+1 555-0184', email: 'mster@example.com', address: '450 Oak Ave, CA', nominee: 'Sarah Sterling (Daughter)', medical: 'None' },
+                { id: '103', name: 'Sophia Chen', phone: '+1 555-0133', email: 'schen@example.com', address: '88 Pine Rd, TX', nominee: 'David Chen (Husband)', medical: 'Asthma' }
+            ],
+            policies: [
+                { id: 'POL-8832', clientId: '101', type: 'Endowment Plan', sumAssured: 100000, premium: 4500, term: 15, startDate: '2022-03-15', status: 'Active' },
+                { id: 'POL-9102', clientId: '102', type: 'Health Insurance', sumAssured: 250000, premium: 3200, term: 5, startDate: '2023-01-10', status: 'Active' },
+                { id: 'POL-3049', clientId: '103', type: 'Term Insurance', sumAssured: 500000, premium: 1800, term: 20, startDate: '2021-06-01', status: 'Renewal Due' },
+                { id: 'POL-4410', clientId: '101', type: 'Child Plan', sumAssured: 80000, premium: 2200, term: 10, startDate: '2023-08-20', status: 'Pending' }
+            ],
+            premiums: [
+                { id: 'PRM-01', policyId: 'POL-8832', dueDate: '2026-11-15', amount: 4500, status: 'Unpaid' },
+                { id: 'PRM-02', policyId: 'POL-9102', dueDate: '2026-10-10', amount: 3200, status: 'Paid' },
+                { id: 'PRM-03', policyId: 'POL-3049', dueDate: '2026-10-01', amount: 1800, status: 'Overdue' }
+            ],
+            claims: [
+                { id: 'CLM-101', policyId: 'POL-9102', amount: 12000, status: 'Approved', reason: 'Emergency Surgery Coverage' },
+                { id: 'CLM-102', policyId: 'POL-8832', amount: 5000, status: 'Under Review', reason: 'Outpatient Procedure' }
+            ],
+            leads: [
+                { id: 'LD-01', name: 'Robert Fox', phone: '+1 555-8821', type: 'Health Insurance', status: 'New' },
+                { id: 'LD-02', name: 'Jessica Alba', phone: '+1 555-9932', type: 'Pension Plan', status: 'In Discussion' }
+            ]
+        };
+
+        // INITIALIZATION
+        window.onload = function() {
+            // Check Dark Mode preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').className = 'fa-solid fa-sun text-lg';
+            }
+        };
+
+        // AUTHENTICATION LOGIC
+        function switchAuthTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const regForm = document.getElementById('registerForm');
+            const tabLogin = document.getElementById('tabBtnLogin');
+            const tabReg = document.getElementById('tabBtnRegister');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+                tabLogin.className = "w-1/2 py-2 font-semibold text-center border-b-2 border-brand-800 text-brand-800 dark:text-blue-400";
+                tabReg.className = "w-1/2 py-2 font-semibold text-center text-gray-500 hover:text-gray-700 dark:text-gray-400";
+            } else {
+                loginForm.classList.add('hidden');
+                regForm.classList.remove('hidden');
+                tabReg.className = "w-1/2 py-2 font-semibold text-center border-b-2 border-brand-800 text-brand-800 dark:text-blue-400";
+                tabLogin.className = "w-1/2 py-2 font-semibold text-center text-gray-500 hover:text-gray-700 dark:text-gray-400";
+            }
+        }
+
+        function handleAuth(event, type) {
+            event.preventDefault();
+            if (type === 'login') {
+                const role = document.getElementById('loginRole').value;
+                const email = document.getElementById('loginEmail').value;
+                const name = email.split('@')[0].toUpperCase();
+                loginUser(name, role);
+            } else {
+                const name = document.getElementById('regName').value;
+                const role = document.getElementById('regRole').value;
+                loginUser(name, role);
+            }
+        }
+
+        function quickLogin(role) {
+            loginUser(`${role} User`, role);
+        }
+
+        function loginUser(name, role) {
+            currentUser = { name, role };
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('userNameDisplay').textContent = name;
+            document.getElementById('userRoleBadge').textContent = role;
+            document.getElementById('topNavUser').textContent = name;
+            document.getElementById('userAvatar').textContent = name.substring(0, 2).toUpperCase();
+
+            showToast(`Welcome back, ${name} (${role})`);
+            
+            // Initialize Dynamic Content & Charts
+            renderAllViews();
+            initCharts();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('authScreen').classList.remove('hidden');
+            showToast("Logged out successfully");
+        }
+
+        // TAB NAVIGATION
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-blue-900', 'text-white');
+                el.classList.add('text-blue-100');
+            });
+
+            // Show selected tab
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) target.classList.remove('hidden');
+
+            const navItem = document.getElementById(`nav-${tabId}`);
+            if (navItem) {
+                navItem.classList.add('bg-blue-900', 'text-white');
+                navItem.classList.remove('text-blue-100');
+            }
+
+            // Update title
+            const titles = {
+                'dashboard': 'Dashboard Overview',
+                'clients': 'Client Management',
+                'policies': 'Policy Management',
+                'premiums': 'Premium Tracking',
+                'commission': 'Commission Calculator',
+                'renewals': 'Policy Renewals',
+                'claims': 'Claims Management',
+                'leads': 'Lead Pipeline',
+                'reports': 'Performance Reports'
+            };
+            document.getElementById('currentTabTitle').textContent = titles[tabId] || 'Dashboard';
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+            sidebar.classList.toggle('absolute');
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun text-lg' : 'fa-solid fa-moon text-lg';
+            // Re-render charts for dark mode balance
+            initCharts();
+        }
+
+        function toggleNotifications() {
+            document.getElementById('notifDropdown').classList.toggle('hidden');
+        }
+
+        // TOAST NOTIFICATIONS
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = message;
+            toastIcon.className = isError ? 'fa-solid fa-triangle-exclamation text-red-400 text-lg' : 'fa-solid fa-circle-check text-green-400 text-lg';
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // RENDER FUNCTIONS
+        function renderAllViews() {
+            renderDashboardStats();
+            renderClients();
+            renderPolicies();
+            renderPremiums();
+            renderRenewals();
+            renderClaims();
+            renderLeads();
+            populateSelectOptions();
+        }
+
+        function getClientName(id) {
+            const client = state.clients.find(c => c.id === id);
+            return client ? client.name : 'Unknown';
+        }
+
+        function getPolicyDetails(id) {
+            return state.policies.find(p => p.id === id) || {};
+        }
+
+        function renderDashboardStats() {
+            document.getElementById('stat-clients').textContent = state.clients.length;
+            document.getElementById('stat-policies').textContent = state.policies.length;
+
+            const totalPremium = state.policies.reduce((acc, p) => acc + Number(p.premium), 0);
+            document.getElementById('stat-premium').textContent = '$' + totalPremium.toLocaleString();
+
+            const estCommission = Math.round(totalPremium * 0.15); // Avg blended rate
+            document.getElementById('stat-commission').textContent = '$' + estCommission.toLocaleString();
+
+            // Render dashboard mini lists
+            const upcomingRenewals = state.policies.filter(p => p.status === 'Renewal Due' || p.status === 'Active').slice(0, 3);
+            document.getElementById('dashUpcomingRenewals').innerHTML = upcomingRenewals.map(p => `
+                <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg flex items-center justify-between text-xs">
+                    <div>
+                        <span class="font-bold text-gray-800 dark:text-white">${p.id} - ${p.type}</span>
+                        <p class="text-gray-500 dark:text-gray-400">Client: ${getClientName(p.clientId)}</p>
+                    </div>
+                    <span class="font-bold text-brand-800 dark:text-blue-300">$${Number(p.premium).toLocaleString()}</span>
+                </div>
+            `).join('');
+
+            const hotLeads = state.leads.filter(l => l.status !== 'Converted').slice(0, 3);
+            document.getElementById('dashHotLeads').innerHTML = hotLeads.map(l => `
+                <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg flex items-center justify-between text-xs">
+                    <div>
+                        <span class="font-bold text-gray-800 dark:text-white">${l.name}</span>
+                        <p class="text-gray-500 dark:text-gray-400">Interested in: ${l.type}</p>
+                    </div>
+                    <span class="px-2 py-1 rounded-full text-[10px] font-semibold ${l.status === 'New' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}">${l.status}</span>
+                </div>
+            `).join('');
+        }
+
+        // CLIENT MANAGEMENT CRUD
+        function renderClients() {
+            const query = document.getElementById('clientSearch')?.value.toLowerCase() || '';
+            const tbody = document.getElementById('clientsTableBody');
+            
+            const filtered = state.clients.filter(c => 
+                c.name.toLowerCase().includes(query) || 
+                c.email.toLowerCase().includes(query) || 
+                c.phone.includes(query)
+            );
+
+            tbody.innerHTML = filtered.map(c => `
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
+                    <td class="p-4 font-semibold text-gray-900 dark:text-white">${c.name}</td>
+                    <td class="p-4">
+                        <div class="text-xs text-gray-600 dark:text-gray-300">${c.email}</div>
+                        <div class="text-xs text-gray-400">${c.phone}</div>
+                    </td>
+                    <td class="p-4 text-gray-600 dark:text-gray-300 text-xs">${c.address}</td>
+                    <td class="p-4 text-gray-600 dark:text-gray-300 text-xs">${c.nominee}</td>
+                    <td class="p-4 text-gray-600 dark:text-gray-300 text-xs">${c.medical}</td>
+                    <td class="p-4 text-right space-x-2">
+                        <button onclick="editClient('${c.id}')" class="text-brand-800 dark:text-blue-400 hover:text-blue-600"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteClient('${c.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openClientModal(client = null) {
+            document.getElementById('clientModalTitle').textContent = client ? 'Edit Client Details' : 'Add New Client';
+            document.getElementById('clientId').value = client ? client.id : '';
+            document.getElementById('clientName').value = client ? client.name : '';
+            document.getElementById('clientPhone').value = client ? client.phone : '';
+            document.getElementById('clientEmail').value = client ? client.email : '';
+            document.getElementById('clientAddress').value = client ? client.address : '';
+            document.getElementById('clientNominee').value = client ? client.nominee : '';
+            document.getElementById('clientMedical').value = client ? client.medical : '';
+            document.getElementById('clientModal').classList.remove('hidden');
+        }
+
+        function saveClient(e) {
+            e.preventDefault();
+            const id = document.getElementById('clientId').value || 'CL-' + Date.now();
+            const newClient = {
+                id,
+                name: document.getElementById('clientName').value,
+                phone: document.getElementById('clientPhone').value,
+                email: document.getElementById('clientEmail').value,
+                address: document.getElementById('clientAddress').value,
+                nominee: document.getElementById('clientNominee').value,
+                medical: document.getElementById('clientMedical').value
+            };
+
+            const idx = state.clients.findIndex(c => c.id === id);
+            if (idx >= 0) state.clients[idx] = newClient;
+            else state.clients.push(newClient);
+
+            closeModal('clientModal');
+            renderAllViews();
+            showToast("Client details saved!");
+        }
+
+        function editClient(id) {
+            const client = state.clients.find(c => c.id === id);
+            if (client) openClientModal(client);
+        }
+
+        function deleteClient(id) {
+            state.clients = state.clients.filter(c => c.id !== id);
+            renderAllViews();
+            showToast("Client removed");
+        }
+
+        // POLICY MANAGEMENT CRUD
+        function renderPolicies() {
+            const filterType = document.getElementById('policyFilterType')?.value || 'All';
+            const filterStatus = document.getElementById('policyFilterStatus')?.value || 'All';
+            const tbody = document.getElementById('policiesTableBody');
+
+            const filtered = state.policies.filter(p => {
+                const matchType = filterType === 'All' || p.type === filterType;
+                const matchStatus = filterStatus === 'All' || p.status === filterStatus;
+                return matchType && matchStatus;
+            });
+
+            const statusBadges = {
+                'Active': 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
+                'Pending': 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+                'Matured': 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
+                'Lapsed': 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+                'Renewal Due': 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300'
+            };
+
+            tbody.innerHTML = filtered.map(p => `
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
+                    <td class="p-4">
+                        <div class="font-bold text-gray-900 dark:text-white">${p.id}</div>
+                        <div class="text-xs text-gray-500">${p.type}</div>
+                    </td>
+                    <td class="p-4 font-medium text-gray-800 dark:text-gray-200">${getClientName(p.clientId)}</td>
+                    <td class="p-4 font-semibold text-gray-900 dark:text-white">$${Number(p.sumAssured).toLocaleString()}</td>
+                    <td class="p-4 text-emerald-600 font-bold">$${Number(p.premium).toLocaleString()}</td>
+                    <td class="p-4 text-xs text-gray-600 dark:text-gray-300">${p.term} Yrs (${p.startDate})</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadges[p.status] || 'bg-gray-100'}">${p.status}</span>
+                    </td>
+                    <td class="p-4 text-right space-x-2">
+                        <button onclick="editPolicy('${p.id}')" class="text-brand-800 dark:text-blue-400 hover:text-blue-600"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deletePolicy('${p.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openPolicyModal(policy = null) {
+            document.getElementById('policyModalTitle').textContent = policy ? 'Edit Policy Details' : 'Create New Policy';
+            document.getElementById('policyId').value = policy ? policy.id : '';
+            document.getElementById('policyClient').value = policy ? policy.clientId : '';
+            document.getElementById('policyType').value = policy ? policy.type : 'Endowment Plan';
+            document.getElementById('policyStatus').value = policy ? policy.status : 'Active';
+            document.getElementById('policySum').value = policy ? policy.sumAssured : '';
+            document.getElementById('policyPremium').value = policy ? policy.premium : '';
+            document.getElementById('policyStart').value = policy ? policy.startDate : new Date().toISOString().split('T')[0];
+            document.getElementById('policyTerm').value = policy ? policy.term : 10;
+            document.getElementById('docUploadStatus').classList.add('hidden');
+            document.getElementById('policyModal').classList.remove('hidden');
+        }
+
+        function savePolicy(e) {
+            e.preventDefault();
+            const id = document.getElementById('policyId').value || 'POL-' + Math.floor(1000 + Math.random() * 9000);
+            const newPolicy = {
+                id,
+                clientId: document.getElementById('policyClient').value,
+                type: document.getElementById('policyType').value,
+                status: document.getElementById('policyStatus').value,
+                sumAssured: Number(document.getElementById('policySum').value),
+                premium: Number(document.getElementById('policyPremium').value),
+                startDate: document.getElementById('policyStart').value,
+                term: Number(document.getElementById('policyTerm').value)
+            };
+
+            const idx = state.policies.findIndex(p => p.id === id);
+            if (idx >= 0) state.policies[idx] = newPolicy;
+            else state.policies.push(newPolicy);
+
+            closeModal('policyModal');
+            renderAllViews();
+            showToast("Policy saved successfully!");
+        }
+
+        function editPolicy(id) {
+            const p = state.policies.find(pol => pol.id === id);
+            if (p) openPolicyModal(p);
+        }
+
+        function deletePolicy(id) {
+            state.policies = state.policies.filter(p => p.id !== id);
+            renderAllViews();
+            showToast("Policy deleted");
+        }
+
+        function simulateDocUpload(input) {
+            if (input.files && input.files[0]) {
+                document.getElementById('docUploadStatus').classList.remove('hidden');
+                showToast("Policy document uploaded & verified!");
+            }
+        }
+
+        // PREMIUM TRACKING & RENEWALS
+        function renderPremiums() {
+            const tbody = document.getElementById('premiumTableBody');
+            tbody.innerHTML = state.premiums.map(p => {
+                const pol = getPolicyDetails(p.policyId);
+                const clientName = getClientName(pol.clientId);
+                return `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
+                        <td class="p-4 font-bold text-gray-900 dark:text-white">${p.policyId}</td>
+                        <td class="p-4 text-gray-800 dark:text-gray-200">${clientName}</td>
+                        <td class="p-4 text-gray-600 dark:text-gray-300">${p.dueDate}</td>
+                        <td class="p-4 font-semibold text-emerald-600">$${Number(p.amount).toLocaleString()}</td>
+                        <td class="p-4">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${p.status === 'Paid' ? 'bg-green-100 text-green-800' : p.status === 'Overdue' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}">${p.status}</span>
+                        </td>
+                        <td class="p-4 text-right">
+                            ${p.status !== 'Paid' ? `<button onclick="markPremiumPaid('${p.id}')" class="px-3 py-1 bg-brand-800 text-white rounded text-xs hover:bg-brand-900">Mark Paid</button>` : `<span class="text-xs text-gray-400">Paid Off</span>`}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function markPremiumPaid(id) {
+            const p = state.premiums.find(item => item.id === id);
+            if (p) {
+                p.status = 'Paid';
+                renderAllViews();
+                showToast("Premium status updated to Paid!");
+            }
+        }
+
+        function renderRenewals() {
+            const tbody = document.getElementById('renewalsTableBody');
+            const renewals = state.policies.filter(p => p.status === 'Active' || p.status === 'Renewal Due');
+            tbody.innerHTML = renewals.map(p => `
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
+                    <td class="p-4 font-bold text-gray-900 dark:text-white">${p.id}</td>
+                    <td class="p-4 text-gray-800 dark:text-gray-200">${getClientName(p.clientId)}</td>
+                    <td class="p-4 text-xs text-gray-600 dark:text-gray-300">Next Due: 2026-11-15</td>
+                    <td class="p-4 font-semibold text-emerald-600">$${Number(p.premium).toLocaleString()}</td>
+                    <td class="p-4"><span class="px-2 py-0.5 rounded text-xs font-bold ${p.status === 'Renewal Due' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'}">${p.status}</span></td>
+                    <td class="p-4 text-right">
+                        <button onclick="sendReminder('${p.id}')" class="px-3 py-1 bg-brand-50 text-brand-800 hover:bg-brand-100 dark:bg-gray-700 dark:text-blue-300 rounded text-xs font-semibold">
+                            <i class="fa-solid fa-bell"></i> Remind
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function sendReminder(policyId) {
+            showToast(`Simulated renewal reminder email & SMS sent for ${policyId}`);
+        }
+
+        function sendBulkRenewalReminders() {
+            showToast("Bulk renewal notification emails sent to all clients!");
+        }
+
+        // COMMISSION CALCULATOR LOGIC
+        function calculateCommission() {
+            const amount = Number(document.getElementById('calcAmount').value) || 0;
+            const yearVal = document.getElementById('calcYear').value;
+
+            let rate = 0.25;
+            let rateText = "25%";
+
+            if (yearVal === "2") { rate = 0.15; rateText = "15%"; }
+            else if (yearVal === "3") { rate = 0.10; rateText = "10%"; }
+            else if (yearVal === "renewal") { rate = 0.05; rateText = "5%"; }
+
+            const payout = amount * rate;
+            document.getElementById('calcRateLabel').textContent = rateText;
+            document.getElementById('calcPayout').textContent = '$' + payout.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        }
+
+        // CLAIMS MANAGEMENT
+        function renderClaims() {
+            const tbody = document.getElementById('claimsTableBody');
+            tbody.innerHTML = state.claims.map(c => {
+                const pol = getPolicyDetails(c.policyId);
+                return `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
+                        <td class="p-4 font-bold text-gray-900 dark:text-white">${c.id}</td>
+                        <td class="p-4 text-gray-800 dark:text-gray-200">${c.policyId}</td>
+                        <td class="p-4 text-xs text-gray-600 dark:text-gray-300">${getClientName(pol.clientId)}</td>
+                        <td class="p-4 font-semibold text-gray-900 dark:text-white">$${Number(c.amount).toLocaleString()}</td>
+                        <td class="p-4">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${c.status === 'Approved' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">${c.status}</span>
+                        </td>
+                        <td class="p-4 text-right">
+                            ${c.status !== 'Approved' ? `<button onclick="approveClaim('${c.id}')" class="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">Approve</button>` : `<span class="text-xs text-gray-400">Completed</span>`}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openClaimModal() {
+            document.getElementById('claimModal').classList.remove('hidden');
+        }
+
+        function saveClaim(e) {
+            e.preventDefault();
+            const newClaim = {
+                id: 'CLM-' + Math.floor(100 + Math.random() * 900),
+                policyId: document.getElementById('claimPolicy').value,
+                amount: Number(document.getElementById('claimAmount').value),
+                reason: document.getElementById('claimReason').value,
+                status: 'Under Review'
+            };
+            state.claims.push(newClaim);
+            closeModal('claimModal');
+            renderAllViews();
+            showToast("Claim registered successfully!");
+        }
+
+        function approveClaim(id) {
+            const claim = state.claims.find(c => c.id === id);
+            if (claim) {
+                claim.status = 'Approved';
+                renderAllViews();
+                showToast("Claim approved!");
+            }
+        }
+
+        // LEAD MANAGEMENT PIPELINE
+        function renderLeads() {
+            const newLeadsCol = document.getElementById('leads-col-new');
+            const discLeadsCol = document.getElementById('leads-col-discussion');
+            const convLeadsCol = document.getElementById('leads-col-converted');
+
+            const newLeads = state.leads.filter(l => l.status === 'New');
+            const discLeads = state.leads.filter(l => l.status === 'In Discussion');
+            const convLeads = state.leads.filter(l => l.status === 'Converted');
+
+            document.getElementById('cnt-new-leads').textContent = newLeads.length;
+            document.getElementById('cnt-discussion-leads').textContent = discLeads.length;
+            document.getElementById('cnt-converted-leads').textContent = convLeads.length;
+
+            const card = (l) => `
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm space-y-2">
+                    <div class="flex justify-between items-start">
+                        <h5 class="font-bold text-gray-900 dark:text-white text-sm">${l.name}</h5>
+                        <span class="text-[10px] text-gray-400 font-mono">${l.phone}</span>
+                    </div>
+                    <p class="text-xs text-brand-800 dark:text-blue-300 font-medium">${l.type}</p>
+                    <div class="pt-2 flex justify-end space-x-1 border-t dark:border-gray-700">
+                        ${l.status === 'New' ? `<button onclick="updateLeadStatus('${l.id}', 'In Discussion')" class="px-2 py-1 bg-blue-50 text-brand-800 text-xs font-semibold rounded hover:bg-blue-100">Move to Discussion</button>` : ''}
+                        ${l.status === 'In Discussion' ? `<button onclick="convertLeadToClient('${l.id}')" class="px-2 py-1 bg-emerald-500 text-white text-xs font-semibold rounded hover:bg-emerald-600">Convert to Client</button>` : ''}
+                    </div>
+                </div>
+            `;
+
+            newLeadsCol.innerHTML = newLeads.map(card).join('');
+            discLeadsCol.innerHTML = discLeads.map(card).join('');
+            convLeadsCol.innerHTML = convLeads.map(card).join('');
+        }
+
+        function openLeadModal() {
+            document.getElementById('leadModal').classList.remove('hidden');
+        }
+
+        function saveLead(e) {
+            e.preventDefault();
+            const newLead = {
+                id: 'LD-' + Date.now(),
+                name: document.getElementById('leadName').value,
+                phone: document.getElementById('leadPhone').value,
+                type: document.getElementById('leadType').value,
+                status: 'New'
+            };
+            state.leads.push(newLead);
+            closeModal('leadModal');
+            renderAllViews();
+            showToast("New prospective lead added!");
+        }
+
+        function updateLeadStatus(id, newStatus) {
+            const lead = state.leads.find(l => l.id === id);
+            if (lead) {
+                lead.status = newStatus;
+                renderAllViews();
+                showToast("Lead status updated");
+            }
+        }
+
+        function convertLeadToClient(leadId) {
+            const lead = state.leads.find(l => l.id === leadId);
+            if (lead) {
+                lead.status = 'Converted';
+                state.clients.push({
+                    id: 'CL-' + Date.now(),
+                    name: lead.name,
+                    phone: lead.phone,
+                    email: lead.name.toLowerCase().replace(' ', '') + '@example.com',
+                    address: 'Pending address update',
+                    nominee: 'N/A',
+                    medical: 'N/A'
+                });
+                renderAllViews();
+                showToast(`Converted lead ${lead.name} to active client!`);
+            }
+        }
+
+        // POPULATE SELECT DROPDOWNS DYNAMICALLY
+        function populateSelectOptions() {
+            const policyClientSelect = document.getElementById('policyClient');
+            if (policyClientSelect) {
+                policyClientSelect.innerHTML = state.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            }
+
+            const claimPolicySelect = document.getElementById('claimPolicy');
+            if (claimPolicySelect) {
+                claimPolicySelect.innerHTML = state.policies.map(p => `<option value="${p.id}">${p.id} - ${getClientName(p.clientId)}</option>`).join('');
+            }
+        }
+
+        // CSV EXPORT SIMULATION
+        function exportCSVReport() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Policy ID,Client Name,Type,Sum Assured,Premium,Status\n";
+
+            state.policies.forEach(p => {
+                csvContent += `${p.id},"${getClientName(p.clientId)}",${p.type},${p.sumAssured},${p.premium},${p.status}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `InsurAgent_Performance_Report.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("CSV performance report generated & downloaded!");
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // CHART.JS INTEGRATION
+        function initCharts() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#9ca3af' : '#4b5563';
+
+            // Destroy existing chart instances if re-rendering
+            if (chartInstances.salesChart) chartInstances.salesChart.destroy();
+            if (chartInstances.policyTypeChart) chartInstances.policyTypeChart.destroy();
+            if (chartInstances.quarterlyChart) chartInstances.quarterlyChart.destroy();
+            if (chartInstances.conversionChart) chartInstances.conversionChart.destroy();
+
+            // 1. Sales & Commission Growth Chart
+            const ctxSales = document.getElementById('salesChart')?.getContext('2d');
+            if (ctxSales) {
+                chartInstances.salesChart = new Chart(ctxSales, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [
+                            {
+                                label: 'Policy Sales ($)',
+                                data: [12000, 19000, 15000, 22000, 28000, 35000],
+                                borderColor: '#1e40af',
+                                backgroundColor: 'rgba(30, 64, 175, 0.1)',
+                                fill: true,
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Commissions ($)',
+                                data: [1800, 2850, 2250, 3300, 4200, 5250],
+                                borderColor: '#10b981',
+                                borderDash: [5, 5],
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: textColor } } },
+                        scales: {
+                            x: { ticks: { color: textColor } },
+                            y: { ticks: { color: textColor } }
+                        }
+                    }
+                });
+            }
+
+            // 2. Policy Type Distribution Doughnut Chart
+            const ctxPolicy = document.getElementById('policyTypeChart')?.getContext('2d');
+            if (ctxPolicy) {
+                chartInstances.policyTypeChart = new Chart(ctxPolicy, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Endowment', 'Health', 'Term', 'Child', 'Pension'],
+                        datasets: [{
+                            data: [35, 25, 20, 10, 10],
+                            backgroundColor: ['#1e40af', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { color: textColor } } }
+                    }
+                });
+            }
+
+            // 3. Quarterly Commission Bar Chart
+            const ctxQuarterly = document.getElementById('quarterlyChart')?.getContext('2d');
+            if (ctxQuarterly) {
+                chartInstances.quarterlyChart = new Chart(ctxQuarterly, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                        datasets: [{
+                            label: 'Commission Earned',
+                            data: [6900, 9750, 11200, 8400],
+                            backgroundColor: '#3b82f6'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: textColor } } },
+                        scales: {
+                            x: { ticks: { color: textColor } },
+                            y: { ticks: { color: textColor } }
+                        }
+                    }
+                });
+            }
+
+            // 4. Policy Conversion Funnel Chart
+            const ctxConversion = document.getElementById('conversionChart')?.getContext('2d');
+            if (ctxConversion) {
+                chartInstances.conversionChart = new Chart(ctxConversion, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Leads Generated', 'Contacted', 'In Discussion', 'Policies Closed'],
+                        datasets: [{
+                            label: 'Funnel Count',
+                            data: [120, 85, 42, 28],
+                            backgroundColor: ['#93c5fd', '#60a5fa', '#2563eb', '#1d4ed8']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: textColor } },
+                            y: { ticks: { color: textColor } }
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
